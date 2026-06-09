@@ -25,11 +25,12 @@
         </div>
     </div>
     <script>
+        // ПРОВЕРКА ТОКЕНА - ПОЛНЫЙ ПУТЬ!
         const token = localStorage.getItem('discord_token');
         const tokenTime = localStorage.getItem('discord_token_time');
         const isValid = token && tokenTime && (Date.now() - parseInt(tokenTime) < 86400000);
         if (isValid) {
-            window.location.href = 'dashboard.html';
+            window.location.href = '/eclipseAI/dashboard.html';
         }
     </script>
 </body>
