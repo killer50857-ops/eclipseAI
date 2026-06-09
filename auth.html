@@ -52,35 +52,60 @@
         if (error) {
             statusDiv.innerHTML = `❌ Ошибка: ${error}<br>Перенаправление...`;
             statusDiv.className = 'status error';
-            setTimeout(() => { window.location.href = '/eclipseAI/'; }, 3000);
+            setTimeout(() => { 
+                window.location.href = '/eclipseAI/'; 
+            }, 3000);
         } else if (code) {
+            statusDiv.innerHTML = '🔄 Обмен кода на токен...';
+            
             // ОТПРАВЛЯЕМ КОД НА ПРОКСИ ДЛЯ ОБМЕНА НА ТОКЕН
             fetch('https://cm599040.tw1.ru/proxy.php/exchange_token', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code: code, redirect_uri: window.location.origin + '/eclipseAI/auth' })
+                headers: { 
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    code: code, 
+                    redirect_uri: 'https://killer50857-ops.github.io/eclipseAI/auth'
+                })
             })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+                return res.json();
+            })
             .then(data => {
+                console.log('Response:', data);
+                
                 if (data.access_token) {
                     localStorage.setItem('discord_token', data.access_token);
                     localStorage.setItem('discord_token_time', Date.now());
                     statusDiv.innerHTML = '✅ Успешный вход!<br>Перенаправление...';
                     statusDiv.className = 'status success';
-                    setTimeout(() => { window.location.href = '/eclipseAI/dashboard.html'; }, 1500);
+                    setTimeout(() => { 
+                        window.location.href = '/eclipseAI/dashboard.html'; 
+                    }, 1500);
+                } else if (data.error) {
+                    throw new Error(data.error_description || data.error);
                 } else {
                     throw new Error('Не удалось получить токен');
                 }
             })
-            .catch(() => {
-                statusDiv.innerHTML = '⚠️ Ошибка обмена кода<br>Перенаправление...';
+            .catch((err) => {
+                console.error('Exchange error:', err);
+                statusDiv.innerHTML = `⚠️ Ошибка: ${err.message}<br>Перенаправление...`;
                 statusDiv.className = 'status error';
-                setTimeout(() => { window.location.href = '/eclipseAI/'; }, 2000);
+                setTimeout(() => { 
+                    window.location.href = '/eclipseAI/'; 
+                }, 3000);
             });
         } else {
             statusDiv.innerHTML = '⚠️ Неверный запрос (нет кода)<br>Перенаправление...';
             statusDiv.className = 'status error';
-            setTimeout(() => { window.location.href = '/eclipseAI/'; }, 2000);
+            setTimeout(() => { 
+                window.location.href = '/eclipseAI/'; 
+            }, 2000);
         }
     </script>
 </body>
