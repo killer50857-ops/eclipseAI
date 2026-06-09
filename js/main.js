@@ -15,15 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==================== ЗАГРУЗКА ПОЛЬЗОВАТЕЛЯ ====================
 async function loadUser() {
     const token = localStorage.getItem('discord_token');
-    const tokenTime = localStorage.getItem('discord_token_time');
-    const isExpired = tokenTime && (Date.now() - parseInt(tokenTime) > 86400000);
-    
-    if (!token || isExpired) {
-        if (isExpired) {
-            localStorage.removeItem('discord_token');
-            localStorage.removeItem('discord_token_time');
-        }
-        window.location.href = '/';
+    if (!token) {
+        window.location.href = 'index.html';
         return;
     }
     
@@ -54,9 +47,9 @@ async function loadUser() {
         await loadStats();
         
     } catch (error) {
+        console.error('Auth error:', error);
         localStorage.removeItem('discord_token');
-        localStorage.removeItem('discord_token_time');
-        window.location.href = '/';
+        window.location.href = 'index.html';
     }
 }
 
@@ -86,12 +79,6 @@ async function sendChat() {
     addMessage('user-message', prompt, 'chatMessages');
     input.value = '';
     
-    // Улучшенный промт для ИИ
-    const enhancedPrompt = `Ты — Eclipse AI, умный помощник на сервере BOSTON Majestic RP. 
-Отвечай дружелюбно, полезно и по-русски. Используй эмодзи.
-Вопрос: ${prompt}
-Ответ:`;
-    
     showTypingIndicator('chatMessages');
     
     try {
@@ -102,20 +89,29 @@ async function sendChat() {
                 'Authorization': `Bearer ${PROXY_SECRET}`
             },
             body: JSON.stringify({
-                prompt: enhancedPrompt,
-                userId: currentUser?.id,
+                prompt: prompt,
+                userId: currentUser?.id || 'guest',
                 model: 'gpt-4o-mini'
             })
         });
         
         const data = await response.json();
         removeTypingIndicator('chatMessages');
-        addMessage('bot-message', data.response, 'chatMessages');
+        
+        if (data.response) {
+            addMessage('bot-message', data.response, 'chatMessages');
+        } else if (data.error) {
+            addMessage('system-message', '⚠️ ' + data.error, 'chatMessages');
+        } else {
+            addMessage('system-message', '⚠️ Ошибка связи с ИИ. Попробуйте позже.', 'chatMessages');
+        }
+        
         await loadStats();
         
     } catch (error) {
         removeTypingIndicator('chatMessages');
-        addMessage('system-message', '⚠️ Ошибка связи с ИИ. Попробуйте позже.', 'chatMessages');
+        console.error('Chat error:', error);
+        addMessage('system-message', '⚠️ Ошибка соединения с прокси-сервером. Проверьте connection.', 'chatMessages');
     }
 }
 
@@ -128,21 +124,6 @@ async function sendRp() {
     addMessage('user-message', question, 'rpMessages');
     input.value = '';
     
-    // СПЕЦИАЛЬНЫЙ ПРОМТ ДЛЯ ЗАКОНОВ
-    const lawsPrompt = `Ты — юридический помощник сервера BOSTON Majestic RP.
-Твоя задача: отвечать СТРОГО на основе законов сервера, которые загружены в базу знаний.
-
-ПРАВИЛА ОТВЕТА:
-1. Если вопрос связан с законами сервера — дай точный ответ из законов.
-2. Если ответ не найден в законах — скажи: "❌ Информация не найдена в законах сервера BOSTON Majestic RP. Обратитесь к администрации."
-3. Если вопрос не касается законов — вежливо скажи: "ℹ️ Этот вопрос не относится к законам сервера. Пожалуйста, задайте вопрос в ИИ-чат."
-4. Отвечай на русском языке, чётко и по делу.
-5. Если можешь, укажи статью или раздел закона.
-
-Вопрос игрока о законах: ${question}
-
-Ответ на основе законов сервера:`;
-
     showTypingIndicator('rpMessages');
     
     try {
@@ -153,19 +134,28 @@ async function sendRp() {
                 'Authorization': `Bearer ${PROXY_SECRET}`
             },
             body: JSON.stringify({
-                question: lawsPrompt,
-                userId: currentUser?.id
+                question: question,
+                userId: currentUser?.id || 'guest'
             })
         });
         
         const data = await response.json();
         removeTypingIndicator('rpMessages');
-        addMessage('bot-message', data.answer, 'rpMessages');
+        
+        if (data.answer) {
+            addMessage('bot-message', data.answer, 'rpMessages');
+        } else if (data.error) {
+            addMessage('system-message', '⚠️ ' + data.error, 'rpMessages');
+        } else {
+            addMessage('system-message', '⚠️ Ошибка получения ответа по законам.', 'rpMessages');
+        }
+        
         await loadStats();
         
     } catch (error) {
         removeTypingIndicator('rpMessages');
-        addMessage('system-message', '⚠️ Ошибка получения ответа по законам. Попробуйте позже.', 'rpMessages');
+        console.error('RP error:', error);
+        addMessage('system-message', '⚠️ Ошибка соединения с прокси-сервером.', 'rpMessages');
     }
 }
 
@@ -185,7 +175,7 @@ function showTypingIndicator(containerId) {
     const indicator = document.createElement('div');
     indicator.id = 'typingIndicator';
     indicator.className = 'message bot-message';
-    indicator.innerHTML = '<div class="message-content">🌙 Eclipse AI печатает<span class="dots">...</span></div>';
+    indicator.innerHTML = '<div class="message-content">🌙 Eclipse AI печатает...</div>';
     container.appendChild(indicator);
     container.scrollTop = container.scrollHeight;
 }
@@ -216,7 +206,6 @@ function changeTheme(theme) {
     showNotification(`Тема изменена на ${theme}`, 'success');
 }
 
-// ==================== УВЕДОМЛЕНИЯ ====================
 function showNotification(message, type = 'success') {
     const container = document.getElementById('notificationContainer');
     if (!container) return;
@@ -267,6 +256,7 @@ async function loadUsersList() {
         }
     } catch (error) {
         console.error('Load users error:', error);
+        document.getElementById('usersList').innerHTML = '<div>Ошибка загрузки пользователей</div>';
     }
 }
 
@@ -286,7 +276,7 @@ async function uploadLaw() {
             body: formData
         });
         if (response.ok) {
-            showNotification('Закон загружен! Помощник обновлён.', 'success');
+            showNotification('Закон загружен!', 'success');
             fileInput.value = '';
         } else {
             showNotification('Ошибка загрузки!', 'error');
@@ -297,26 +287,25 @@ async function uploadLaw() {
 }
 
 async function rebuildLaws() {
-    showNotification('🔄 Переобучение помощника...', 'success');
     try {
         const response = await fetch(`${PROXY_URL}/admin/rebuild_laws`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${PROXY_SECRET}` }
         });
         if (response.ok) {
-            showNotification('✅ Законы переобучены! RP-помощник обновлён.', 'success');
+            showNotification('Законы переобучены!', 'success');
         } else {
-            showNotification('❌ Ошибка переобучения!', 'error');
+            showNotification('Ошибка переобучения!', 'error');
         }
     } catch (error) {
-        showNotification('❌ Ошибка переобучения!', 'error');
+        showNotification('Ошибка переобучения!', 'error');
     }
 }
 
 function clearChat() {
     const container = document.getElementById('chatMessages');
     if (container) {
-        container.innerHTML = `<div class="welcome-message"><div class="ai-icon">🌙</div><div class="welcome-text"><h3>Чат очищен</h3><p>Задайте новый вопрос!</p></div></div>`;
+        container.innerHTML = `<div class="welcome-message"><div class="ai-icon">🌙</div><div><h3>Чат очищен</h3><p>Задайте новый вопрос!</p></div></div>`;
         showNotification('Чат очищен', 'success');
     }
 }
@@ -324,14 +313,14 @@ function clearChat() {
 function clearRp() {
     const container = document.getElementById('rpMessages');
     if (container) {
-        container.innerHTML = `<div class="welcome-message"><div class="ai-icon">⚖️</div><div class="welcome-text"><h3>История очищена</h3><p>Задайте вопрос о законах!</p></div></div>`;
+        container.innerHTML = `<div class="welcome-message"><div class="ai-icon">⚖️</div><div><h3>История очищена</h3><p>Задайте вопрос о законах!</p></div></div>`;
         showNotification('История RP очищена', 'success');
     }
 }
 
 function logout() {
     localStorage.clear();
-    window.location.href = '/';
+    window.location.href = 'index.html';
 }
 
 function switchTab(tabName) {
@@ -345,13 +334,10 @@ function switchTab(tabName) {
 
 // ==================== НАСТРОЙКА СОБЫТИЙ ====================
 function setupEventListeners() {
-    // Чат
     document.getElementById('sendChatBtn')?.addEventListener('click', sendChat);
     document.getElementById('sendRpBtn')?.addEventListener('click', sendRp);
     document.getElementById('clearChatBtn')?.addEventListener('click', clearChat);
     document.getElementById('clearRpBtn')?.addEventListener('click', clearRp);
-    
-    // Админка
     document.getElementById('adminBtn')?.addEventListener('click', openAdmin);
     document.getElementById('logoutBtn')?.addEventListener('click', logout);
     document.getElementById('verifyAdminBtn')?.addEventListener('click', verifyAdmin);
@@ -361,15 +347,8 @@ function setupEventListeners() {
     });
     document.getElementById('uploadLawBtn')?.addEventListener('click', uploadLaw);
     document.getElementById('rebuildLawsBtn')?.addEventListener('click', rebuildLaws);
-    
-    // Закрытие модалки
     document.querySelector('.close')?.addEventListener('click', closeAdmin);
-    window.addEventListener('click', (e) => {
-        const modal = document.getElementById('adminModal');
-        if (e.target === modal) closeAdmin();
-    });
     
-    // Enter для отправки
     document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendChat();
     });
@@ -377,7 +356,6 @@ function setupEventListeners() {
         if (e.key === 'Enter') sendRp();
     });
     
-    // Переключение вкладок
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const tab = btn.getAttribute('data-tab');
@@ -393,6 +371,6 @@ window.closeAdmin = closeAdmin;
 window.logout = logout;
 window.sendChat = sendChat;
 window.sendRp = sendRp;
-window.changeTheme = changeTheme;
 window.clearChat = clearChat;
 window.clearRp = clearRp;
+window.changeTheme = changeTheme;
