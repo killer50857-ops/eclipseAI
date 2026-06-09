@@ -1,14 +1,28 @@
-// Конфигурация
+// ==================== КОНФИГУРАЦИЯ ====================
 const PROXY_URL = 'https://cm599040.tw1.ru/proxy.php';
 const PROXY_SECRET = 'my_shared_secret_123';
 let currentUser = null;
-let chatHistory = [];
-let rpHistory = [];
 
-// Загрузка пользователя
+// ==================== ИНИЦИАЛИЗАЦИЯ ====================
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.location.pathname.includes('dashboard')) {
+        loadUser();
+        setupEventListeners();
+        loadTheme();
+    }
+});
+
+// ==================== ЗАГРУЗКА ПОЛЬЗОВАТЕЛЯ ====================
 async function loadUser() {
     const token = localStorage.getItem('discord_token');
-    if (!token) {
+    const tokenTime = localStorage.getItem('discord_token_time');
+    const isExpired = tokenTime && (Date.now() - parseInt(tokenTime) > 86400000);
+    
+    if (!token || isExpired) {
+        if (isExpired) {
+            localStorage.removeItem('discord_token');
+            localStorage.removeItem('discord_token_time');
+        }
         window.location.href = '/';
         return;
     }
@@ -17,75 +31,58 @@ async function loadUser() {
         const response = await fetch('https://discord.com/api/users/@me', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        currentUser = await response.json();
         
-        if (!currentUser.id) throw new Error('No user');
+        if (!response.ok) throw new Error('Token invalid');
+        
+        currentUser = await response.json();
         
         // Обновляем UI
         document.getElementById('userName').innerText = currentUser.global_name || currentUser.username;
-        document.getElementById('userAvatar').src = `https://cdn.discordapp.com/avatars/${currentUser.id}/${currentUser.avatar}.png`;
+        const avatarUrl = currentUser.avatar 
+            ? `https://cdn.discordapp.com/avatars/${currentUser.id}/${currentUser.avatar}.png`
+            : 'https://cdn.discordapp.com/embed/avatars/0.png';
+        
+        document.getElementById('userAvatar').src = avatarUrl;
         document.getElementById('profileName').innerText = currentUser.global_name || currentUser.username;
         document.getElementById('profileDiscordId').innerText = currentUser.id;
-        document.getElementById('profileGlobalName').innerText = currentUser.global_name || 'Не указано';
-        document.getElementById('profileAvatar').src = `https://cdn.discordapp.com/avatars/${currentUser.id}/${currentUser.avatar}.png`;
+        document.getElementById('profileGlobalName').innerText = currentUser.global_name || currentUser.username;
+        document.getElementById('profileAvatar').src = avatarUrl;
         
-        // Проверяем админа
-        checkAdminStatus();
+        // Проверка админа
+        const savedAdmin = localStorage.getItem('isAdmin');
+        if (savedAdmin === 'true') {
+            document.getElementById('adminBtn').style.display = 'inline-block';
+        }
         
-        // Загружаем тему
-        loadTheme();
-        
-        // Загружаем статистику
-        loadStats();
+        // Загрузка статистики
+        await loadStats();
         
     } catch (error) {
         console.error('Auth error:', error);
         localStorage.removeItem('discord_token');
+        localStorage.removeItem('discord_token_time');
         window.location.href = '/';
     }
 }
 
-// Проверка админа
-function checkAdminStatus() {
-    const savedAdmin = localStorage.getItem('isAdmin');
-    if (savedAdmin === 'true') {
-        document.getElementById('adminBtn').style.display = 'inline-block';
-    }
-}
-
-// Загрузка темы
-async function loadTheme() {
-    const savedTheme = localStorage.getItem('siteTheme');
-    if (savedTheme) {
-        document.body.className = `theme-${savedTheme}`;
-    } else {
-        document.body.className = 'theme-eclipse';
-    }
-}
-
-// Смена темы
-async function changeTheme(theme) {
+// ==================== ЗАГРУЗКА СТАТИСТИКИ ====================
+async function loadStats() {
     try {
-        const response = await fetch(`${PROXY_URL}/set_theme`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${PROXY_SECRET}`
-            },
-            body: JSON.stringify({ theme, adminKey: localStorage.getItem('adminKey') })
+        const response = await fetch(`${PROXY_URL}/get_stats`, {
+            headers: { 'Authorization': `Bearer ${PROXY_SECRET}` }
         });
+        const stats = await response.json();
         
-        if (response.ok) {
-            localStorage.setItem('siteTheme', theme);
-            document.body.className = `theme-${theme}`;
-            showNotification('Тема изменена!', 'success');
+        if (stats[currentUser?.id]) {
+            document.getElementById('chatCount').innerText = stats[currentUser.id].chat || 0;
+            document.getElementById('rpCount').innerText = stats[currentUser.id].rp || 0;
         }
     } catch (error) {
-        console.error('Theme error:', error);
+        console.error('Stats error:', error);
     }
 }
 
-// УЛУЧШЕННЫЙ ПРОМТ ДЛЯ ИИ-ЧАТА
+// ==================== ОТПРАВКА В ЧАТ ====================
 async function sendChat() {
     const input = document.getElementById('chatInput');
     const prompt = input.value.trim();
@@ -104,6 +101,8 @@ async function sendChat() {
 
 Ответ Eclipse AI:`;
     
+    showTypingIndicator('chatMessages');
+    
     try {
         const response = await fetch(`${PROXY_URL}/chat`, {
             method: 'POST',
@@ -113,20 +112,23 @@ async function sendChat() {
             },
             body: JSON.stringify({
                 prompt: enhancedPrompt,
-                userId: currentUser.id,
+                userId: currentUser?.id,
                 model: 'gpt-4o-mini'
             })
         });
         
         const data = await response.json();
+        removeTypingIndicator('chatMessages');
         addMessage('bot-message', data.response, 'chatMessages');
+        await loadStats();
         
     } catch (error) {
+        removeTypingIndicator('chatMessages');
         addMessage('system-message', '⚠️ Ошибка связи с ИИ. Попробуйте позже.', 'chatMessages');
     }
 }
 
-// УЛУЧШЕННЫЙ ПРОМТ ДЛЯ RP-ПОМОЩНИКА (ЗАКОНЫ)
+// ==================== ОТПРАВКА В RP ====================
 async function sendRp() {
     const input = document.getElementById('rpInput');
     const question = input.value.trim();
@@ -139,15 +141,16 @@ async function sendRp() {
     const lawsPrompt = `Ты — юридический помощник сервера BOSTON Majestic RP.
 Твоя задача: отвечать строго на основе законов сервера, которые загружены в базу знаний.
 Правила ответа:
-1. Если вопрос связан с законами сервера — дай точный ответ из законов с указанием статьи, если возможно.
-2. Если ответ не найден в законах — скажи: "❌ Информация не найдена в законах сервера BOSTON Majestic RP. Обратитесь к администрации."
+1. Если вопрос связан с законами сервера — дай точный ответ из законов с указанием статьи.
+2. Если ответ не найден в законах — скажи: "❌ Информация не найдена в законах сервера BOSTON Majestic RP."
 3. Если вопрос не касается законов — вежливо перенаправь к общему ИИ-чату.
 4. Отвечай на русском языке, чётко и по делу.
-5. Используй эмодзи для наглядности.
 
 Вопрос игрока о законах: ${question}
 
 Ответ на основе законов сервера:`;
+    
+    showTypingIndicator('rpMessages');
     
     try {
         const response = await fetch(`${PROXY_URL}/rp_ask`, {
@@ -158,19 +161,22 @@ async function sendRp() {
             },
             body: JSON.stringify({
                 question: lawsPrompt,
-                userId: currentUser.id
+                userId: currentUser?.id
             })
         });
         
         const data = await response.json();
+        removeTypingIndicator('rpMessages');
         addMessage('bot-message', data.answer, 'rpMessages');
+        await loadStats();
         
     } catch (error) {
+        removeTypingIndicator('rpMessages');
         addMessage('system-message', '⚠️ Ошибка получения ответа по законам.', 'rpMessages');
     }
 }
 
-// Добавление сообщения в чат
+// ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
 function addMessage(type, content, containerId) {
     const container = document.getElementById(containerId);
     const messageDiv = document.createElement('div');
@@ -187,31 +193,51 @@ function addMessage(type, content, containerId) {
     container.scrollTop = container.scrollHeight;
 }
 
-// Эскейп HTML
+function showTypingIndicator(containerId) {
+    const container = document.getElementById(containerId);
+    const indicator = document.createElement('div');
+    indicator.id = 'typingIndicator';
+    indicator.className = 'message bot-message';
+    indicator.innerHTML = '<div class="message-content">🌙 Eclipse AI печатает<span class="dots">...</span></div>';
+    container.appendChild(indicator);
+    container.scrollTop = container.scrollHeight;
+}
+
+function removeTypingIndicator(containerId) {
+    const indicator = document.getElementById('typingIndicator');
+    if (indicator) indicator.remove();
+}
+
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
 
-// Загрузка статистики
-async function loadStats() {
-    try {
-        const response = await fetch(`${PROXY_URL}/get_stats`, {
-            headers: { 'Authorization': `Bearer ${PROXY_SECRET}` }
-        });
-        const stats = await response.json();
-        
-        if (stats[currentUser.id]) {
-            document.getElementById('chatCount').innerText = stats[currentUser.id].chat || 0;
-            document.getElementById('rpCount').innerText = stats[currentUser.id].rp || 0;
-        }
-    } catch (error) {
-        console.error('Stats error:', error);
+function showNotification(message, type = 'success') {
+    const container = document.getElementById('notificationContainer');
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerText = message;
+    container.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
+}
+
+// ==================== ТЕМЫ ====================
+function loadTheme() {
+    const savedTheme = localStorage.getItem('siteTheme');
+    if (savedTheme) {
+        document.body.className = `theme-${savedTheme}`;
     }
 }
 
-// Админ-панель
+async function changeTheme(theme) {
+    localStorage.setItem('siteTheme', theme);
+    document.body.className = `theme-${theme}`;
+    showNotification(`Тема изменена на ${theme}`, 'success');
+}
+
+// ==================== АДМИН-ПАНЕЛЬ ====================
 function openAdmin() {
     document.getElementById('adminModal').style.display = 'block';
 }
@@ -225,11 +251,10 @@ async function verifyAdmin() {
     
     if (password === 'style42') {
         localStorage.setItem('isAdmin', 'true');
-        localStorage.setItem('adminKey', btoa('style42'));
         document.getElementById('adminLoginSection').style.display = 'none';
         document.getElementById('adminPanel').style.display = 'block';
-        loadUsersList();
-        loadHistoryList();
+        await loadUsersList();
+        await loadHistoryList();
         showNotification('Добро пожаловать в админ-панель!', 'success');
     } else {
         showNotification('Неверный пароль!', 'error');
@@ -244,13 +269,15 @@ async function loadUsersList() {
         const users = await response.json();
         
         const container = document.getElementById('usersList');
-        container.innerHTML = users.map(user => `
-            <div class="list-item">
-                <strong>${escapeHtml(user.username)}</strong><br>
-                Discord ID: ${user.discord_id}<br>
-                Зарегистрирован: ${new Date(user.registered_at).toLocaleString()}
-            </div>
-        `).join('');
+        if (container) {
+            container.innerHTML = users.map(user => `
+                <div class="list-item">
+                    <strong>${escapeHtml(user.username)}</strong><br>
+                    Discord ID: ${user.discord_id}<br>
+                    Зарегистрирован: ${new Date(user.registered_at).toLocaleString()}
+                </div>
+            `).join('');
+        }
     } catch (error) {
         console.error('Load users error:', error);
     }
@@ -264,14 +291,16 @@ async function loadHistoryList() {
         const history = await response.json();
         
         const container = document.getElementById('historyList');
-        container.innerHTML = history.map(item => `
-            <div class="list-item">
-                <strong>${escapeHtml(item.username)}</strong> [${item.type}]<br>
-                ${item.type === 'chat' ? 'Вопрос: ' + escapeHtml(item.prompt) : 'Вопрос: ' + escapeHtml(item.question)}<br>
-                Ответ: ${escapeHtml(item.content.substring(0, 100))}...<br>
-                <small>${new Date(item.created_at).toLocaleString()}</small>
-            </div>
-        `).join('');
+        if (container) {
+            container.innerHTML = history.map(item => `
+                <div class="list-item">
+                    <strong>${escapeHtml(item.username)}</strong> [${item.type}]<br>
+                    ${item.type === 'chat' ? 'Вопрос: ' + escapeHtml(item.prompt) : 'Вопрос: ' + escapeHtml(item.question)}<br>
+                    Ответ: ${escapeHtml(item.content.substring(0, 100))}...<br>
+                    <small>${new Date(item.created_at).toLocaleString()}</small>
+                </div>
+            `).join('');
+        }
     } catch (error) {
         console.error('Load history error:', error);
     }
@@ -279,7 +308,7 @@ async function loadHistoryList() {
 
 async function uploadLaw() {
     const fileInput = document.getElementById('lawFile');
-    const file = fileInput.files[0];
+    const file = fileInput?.files[0];
     
     if (!file) {
         showNotification('Выберите файл!', 'error');
@@ -299,6 +328,8 @@ async function uploadLaw() {
         if (response.ok) {
             showNotification('Закон загружен успешно!', 'success');
             fileInput.value = '';
+        } else {
+            showNotification('Ошибка загрузки!', 'error');
         }
     } catch (error) {
         showNotification('Ошибка загрузки!', 'error');
@@ -320,29 +351,39 @@ async function rebuildLaws() {
     }
 }
 
-function showNotification(message, type) {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerText = message;
-    notification.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: ${type === 'success' ? '#2ecc71' : '#e74c3c'};
-        color: white;
-        padding: 12px 20px;
-        font-family: 'Minecraft', monospace;
-        z-index: 2000;
-        animation: slideIn 0.3s;
+function clearChat() {
+    const container = document.getElementById('chatMessages');
+    container.innerHTML = `
+        <div class="welcome-message">
+            <div class="ai-icon">🌙</div>
+            <div class="welcome-text">
+                <h3>Добро пожаловать в Eclipse AI!</h3>
+                <p>Чат очищен. Задайте новый вопрос!</p>
+            </div>
+        </div>
     `;
-    document.body.appendChild(notification);
-    setTimeout(() => notification.remove(), 3000);
+    showNotification('Чат очищен', 'success');
+}
+
+function clearRp() {
+    const container = document.getElementById('rpMessages');
+    container.innerHTML = `
+        <div class="welcome-message">
+            <div class="ai-icon">⚖️</div>
+            <div class="welcome-text">
+                <h3>Помощник по законам сервера</h3>
+                <p>История очищена. Задайте вопрос о законах!</p>
+            </div>
+        </div>
+    `;
+    showNotification('История RP очищена', 'success');
 }
 
 function logout() {
     localStorage.removeItem('discord_token');
+    localStorage.removeItem('discord_token_time');
     localStorage.removeItem('isAdmin');
-    localStorage.removeItem('adminKey');
+    localStorage.removeItem('siteTheme');
     window.location.href = '/';
 }
 
@@ -351,48 +392,69 @@ function switchTab(tabName) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     
     document.getElementById(tabName).classList.add('active');
-    event.target.classList.add('active');
+    event.target.closest('.tab-btn').classList.add('active');
 }
 
-// Инициализация
-document.addEventListener('DOMContentLoaded', () => {
-    if (window.location.pathname.includes('dashboard')) {
-        loadUser();
-        
-        // Event listeners
-        document.getElementById('sendChatBtn')?.addEventListener('click', sendChat);
-        document.getElementById('sendRpBtn')?.addEventListener('click', sendRp);
-        document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendChat();
+// ==================== EVENT LISTENERS ====================
+function setupEventListeners() {
+    // Чат
+    document.getElementById('sendChatBtn')?.addEventListener('click', sendChat);
+    document.getElementById('sendRpBtn')?.addEventListener('click', sendRp);
+    document.getElementById('clearChatBtn')?.addEventListener('click', clearChat);
+    document.getElementById('clearRpBtn')?.addEventListener('click', clearRp);
+    document.getElementById('refreshStatsBtn')?.addEventListener('click', loadStats);
+    
+    // Enter
+    document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendChat();
+    });
+    document.getElementById('rpInput')?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendRp();
+    });
+    
+    // Админка
+    document.getElementById('adminBtn')?.addEventListener('click', openAdmin);
+    document.getElementById('logoutBtn')?.addEventListener('click', logout);
+    document.getElementById('verifyAdminBtn')?.addEventListener('click', verifyAdmin);
+    document.getElementById('applyThemeBtn')?.addEventListener('click', () => {
+        const theme = document.getElementById('themeSelect').value;
+        changeTheme(theme);
+    });
+    document.getElementById('uploadLawBtn')?.addEventListener('click', uploadLaw);
+    document.getElementById('rebuildLawsBtn')?.addEventListener('click', rebuildLaws);
+    
+    // Тематические кнопки
+    document.querySelectorAll('.theme-option').forEach(btn => {
+        btn.addEventListener('click', () => changeTheme(btn.dataset.theme));
+    });
+    
+    // Очистка поля ввода
+    document.getElementById('clearChatInputBtn')?.addEventListener('click', () => {
+        document.getElementById('chatInput').value = '';
+    });
+    
+    // Закрытие модалки
+    document.querySelector('.close')?.addEventListener('click', closeAdmin);
+    window.addEventListener('click', (e) => {
+        if (e.target === document.getElementById('adminModal')) closeAdmin();
+    });
+    
+    // Вкладки
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const tab = btn.dataset.tab;
+            if (tab) switchTab(tab);
         });
-        document.getElementById('rpInput')?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendRp();
-        });
-        document.getElementById('adminBtn')?.addEventListener('click', openAdmin);
-        document.getElementById('logoutBtn')?.addEventListener('click', logout);
-        document.getElementById('verifyAdminBtn')?.addEventListener('click', verifyAdmin);
-        document.getElementById('applyThemeBtn')?.addEventListener('click', () => {
-            const theme = document.getElementById('themeSelect').value;
-            changeTheme(theme);
-        });
-        document.getElementById('uploadLawBtn')?.addEventListener('click', uploadLaw);
-        document.getElementById('rebuildLawsBtn')?.addEventListener('click', rebuildLaws);
-        
-        document.querySelector('.close')?.addEventListener('click', closeAdmin);
-        window.addEventListener('click', (e) => {
-            if (e.target === document.getElementById('adminModal')) closeAdmin();
-        });
-    }
-});
+    });
+}
 
-// Обработка вкладок
+// Глобальные функции
 window.switchTab = switchTab;
 window.openAdmin = openAdmin;
 window.closeAdmin = closeAdmin;
-window.verifyAdmin = verifyAdmin;
-window.uploadLaw = uploadLaw;
-window.rebuildLaws = rebuildLaws;
-window.changeTheme = changeTheme;
-window.logout = logout;
 window.sendChat = sendChat;
 window.sendRp = sendRp;
+window.logout = logout;
+window.changeTheme = changeTheme;
+window.clearChat = clearChat;
+window.clearRp = clearRp;
