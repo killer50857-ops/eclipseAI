@@ -548,3 +548,110 @@ body.theme-roblox {
         font-size: 20px;
     }
 }
+
+.notification-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 2000;
+}
+
+.notification {
+    background: #2ecc71;
+    color: white;
+    padding: 12px 20px;
+    margin-top: 10px;
+    font-family: 'Minecraft', monospace;
+    animation: slideInRight 0.3s;
+}
+
+.notification.error {
+    background: #e74c3c;
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.clear-btn {
+    background: rgba(231,76,60,0.3);
+    border: 1px solid #e74c3c;
+    padding: 5px 12px;
+    cursor: pointer;
+    font-family: 'Minecraft', monospace;
+    font-size: 11px;
+    transition: all 0.2s;
+}
+
+.clear-btn:hover { background: #e74c3c; }
+
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(155,89,182,0.3);
+}
+
+.ai-status {
+    font-size: 11px;
+    color: #2ecc71;
+    background: rgba(46,204,113,0.2);
+    padding: 4px 10px;
+}
+
+.laws-status { color: #f39c12; }
+
+.message-time {
+    font-size: 9px;
+    opacity: 0.5;
+    margin-top: 5px;
+}
+
+.icon-btn, .send-button, .discord-btn, .clear-btn, .admin-section button, #verifyAdminBtn, #applyThemeBtn, #uploadLawBtn, #rebuildLawsBtn {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.icon-btn:hover, .send-button:hover, .clear-btn:hover, .admin-section button:hover {
+    transform: translateY(-2px);
+}
+
+.modal-content {
+    background: rgba(0,0,0,0.95);
+    border: 3px solid #9b59b6;
+    padding: 20px;
+    max-width: 500px;
+    margin: 50px auto;
+}
+
+.close {
+    float: right;
+    font-size: 28px;
+    cursor: pointer;
+    color: #9b59b6;
+}
+
+.close:hover { color: #e74c3c; }
+
+.admin-section {
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(155,89,182,0.1);
+}
+
+.list-item {
+    padding: 10px;
+    border-bottom: 1px solid rgba(155,89,182,0.3);
+    font-size: 12px;
+}
+
+@media (max-width: 768px) {
+    .app-container { padding: 10px; }
+    .glass-header { flex-direction: column; text-align: center; }
+    .tabs { flex-wrap: wrap; }
+    .tab-btn { flex: 1; font-size: 10px; padding: 8px; }
+    .stat-value { font-size: 20px; }
+}
