@@ -1,9 +1,7 @@
-// ==================== КОНФИГУРАЦИЯ ====================
 const PROXY_URL = 'https://cm599040.tw1.ru/proxy.php';
 const PROXY_SECRET = 'my_shared_secret_123';
 let currentUser = null;
 
-// ==================== ИНИЦИАЛИЗАЦИЯ ====================
 document.addEventListener('DOMContentLoaded', () => {
     if (window.location.pathname.includes('dashboard')) {
         loadUser();
@@ -12,7 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// ==================== ЗАГРУЗКА ПОЛЬЗОВАТЕЛЯ ====================
 async function loadUser() {
     const token = localStorage.getItem('discord_token');
     if (!token) {
@@ -47,17 +44,20 @@ async function loadUser() {
         await loadStats();
         
     } catch (error) {
-        console.error('Auth error:', error);
         localStorage.removeItem('discord_token');
         window.location.href = '/eclipseAI/';
     }
 }
 
-// ==================== СТАТИСТИКА ====================
 async function loadStats() {
     try {
-        const response = await fetch(`${PROXY_URL}/get_stats`, {
-            headers: { 'Authorization': `Bearer ${PROXY_SECRET}` }
+        const response = await fetch(`${PROXY_URL}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${PROXY_SECRET}`
+            },
+            body: JSON.stringify({ action: 'get_stats' })
         });
         const stats = await response.json();
         
@@ -70,7 +70,6 @@ async function loadStats() {
     }
 }
 
-// ==================== ОТПРАВКА В ЧАТ ====================
 async function sendChat() {
     const input = document.getElementById('chatInput');
     const prompt = input.value.trim();
@@ -82,7 +81,7 @@ async function sendChat() {
     showTypingIndicator('chatMessages');
     
     try {
-        const response = await fetch(`${PROXY_URL}/chat`, {
+        const response = await fetch(`${PROXY_URL}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -90,8 +89,7 @@ async function sendChat() {
             },
             body: JSON.stringify({
                 prompt: prompt,
-                userId: currentUser?.id || 'guest',
-                model: 'gpt-4o-mini'
+                userId: currentUser?.id || 'guest'
             })
         });
         
@@ -100,22 +98,19 @@ async function sendChat() {
         
         if (data.response) {
             addMessage('bot-message', data.response, 'chatMessages');
-        } else if (data.error) {
-            addMessage('system-message', '⚠️ ' + data.error, 'chatMessages');
         } else {
             addMessage('system-message', '⚠️ Ошибка связи с ИИ. Попробуйте позже.', 'chatMessages');
         }
         
+        await updateStats('chat');
         await loadStats();
         
     } catch (error) {
         removeTypingIndicator('chatMessages');
-        console.error('Chat error:', error);
-        addMessage('system-message', '⚠️ Ошибка соединения с прокси-сервером.', 'chatMessages');
+        addMessage('system-message', '⚠️ Ошибка соединения с сервером.', 'chatMessages');
     }
 }
 
-// ==================== ОТПРАВКА В RP (ЗАКОНЫ) ====================
 async function sendRp() {
     const input = document.getElementById('rpInput');
     const question = input.value.trim();
@@ -127,7 +122,7 @@ async function sendRp() {
     showTypingIndicator('rpMessages');
     
     try {
-        const response = await fetch(`${PROXY_URL}/rp_ask`, {
+        const response = await fetch(`${PROXY_URL}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -144,22 +139,39 @@ async function sendRp() {
         
         if (data.answer) {
             addMessage('bot-message', data.answer, 'rpMessages');
-        } else if (data.error) {
-            addMessage('system-message', '⚠️ ' + data.error, 'rpMessages');
         } else {
             addMessage('system-message', '⚠️ Ошибка получения ответа по законам.', 'rpMessages');
         }
         
+        await updateStats('rp');
         await loadStats();
         
     } catch (error) {
         removeTypingIndicator('rpMessages');
-        console.error('RP error:', error);
-        addMessage('system-message', '⚠️ Ошибка соединения с прокси-сервером.', 'rpMessages');
+        addMessage('system-message', '⚠️ Ошибка соединения с сервером.', 'rpMessages');
     }
 }
 
-// ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
+async function updateStats(type) {
+    if (!currentUser?.id) return;
+    try {
+        await fetch(`${PROXY_URL}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${PROXY_SECRET}`
+            },
+            body: JSON.stringify({
+                action: 'update_stats',
+                userId: currentUser.id,
+                type: type
+            })
+        });
+    } catch (error) {
+        console.error('Stats update error:', error);
+    }
+}
+
 function addMessage(type, content, containerId) {
     const container = document.getElementById(containerId);
     const messageDiv = document.createElement('div');
@@ -192,7 +204,6 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// ==================== ТЕМЫ ====================
 function loadTheme() {
     const savedTheme = localStorage.getItem('siteTheme');
     if (savedTheme) {
@@ -216,7 +227,6 @@ function showNotification(message, type = 'success') {
     setTimeout(() => notification.remove(), 3000);
 }
 
-// ==================== АДМИН-ПАНЕЛЬ ====================
 function openAdmin() {
     document.getElementById('adminModal').style.display = 'block';
 }
@@ -240,8 +250,13 @@ async function verifyAdmin() {
 
 async function loadUsersList() {
     try {
-        const response = await fetch(`${PROXY_URL}/admin/users`, {
-            headers: { 'Authorization': `Bearer ${PROXY_SECRET}` }
+        const response = await fetch(`${PROXY_URL}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${PROXY_SECRET}`
+            },
+            body: JSON.stringify({ action: 'get_users' })
         });
         const users = await response.json();
         const container = document.getElementById('usersList');
@@ -256,7 +271,6 @@ async function loadUsersList() {
         }
     } catch (error) {
         console.error('Load users error:', error);
-        document.getElementById('usersList').innerHTML = '<div>Ошибка загрузки пользователей</div>';
     }
 }
 
@@ -270,7 +284,7 @@ async function uploadLaw() {
     const formData = new FormData();
     formData.append('lawfile', file);
     try {
-        const response = await fetch(`${PROXY_URL}/admin/upload_law`, {
+        const response = await fetch(`${PROXY_URL}?action=upload_law`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${PROXY_SECRET}` },
             body: formData
@@ -288,7 +302,7 @@ async function uploadLaw() {
 
 async function rebuildLaws() {
     try {
-        const response = await fetch(`${PROXY_URL}/admin/rebuild_laws`, {
+        const response = await fetch(`${PROXY_URL}?action=rebuild_laws`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${PROXY_SECRET}` }
         });
@@ -318,7 +332,6 @@ function clearRp() {
     }
 }
 
-// ==================== ВЫХОД - ПОЛНЫЙ ПУТЬ! ====================
 function logout() {
     localStorage.clear();
     window.location.href = '/eclipseAI/';
@@ -333,7 +346,6 @@ function switchTab(tabName) {
     }
 }
 
-// ==================== НАСТРОЙКА СОБЫТИЙ ====================
 function setupEventListeners() {
     document.getElementById('sendChatBtn')?.addEventListener('click', sendChat);
     document.getElementById('sendRpBtn')?.addEventListener('click', sendRp);
@@ -365,7 +377,6 @@ function setupEventListeners() {
     });
 }
 
-// ==================== ГЛОБАЛЬНЫЕ ФУНКЦИИ ====================
 window.switchTab = switchTab;
 window.openAdmin = openAdmin;
 window.closeAdmin = closeAdmin;
