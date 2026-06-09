@@ -2,21 +2,41 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Eclipse AI | Панель</title>
     <link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌙%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ АККУРАТНОСТИ */
+        .message { word-wrap: break-word; overflow-wrap: break-word; max-width: 100%; }
+        .message-content { word-break: break-word; white-space: pre-wrap; line-height: 1.4; }
+        .messages-container { overflow-x: hidden; }
+        .welcome-message { flex-wrap: wrap; }
+        .welcome-text { flex: 1; min-width: 200px; }
+        .user-menu { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .username { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        @media (max-width: 600px) {
+            .glass-header { flex-direction: column; text-align: center; }
+            .user-menu { justify-content: center; }
+            .username { max-width: 120px; }
+            .tab-btn { padding: 8px 12px; font-size: 11px; }
+            .chat-header { flex-direction: column; gap: 10px; align-items: flex-start; }
+        }
+    </style>
 </head>
 <body class="theme-eclipse">
     <div class="app-container">
         <header class="glass-header">
-            <div class="logo"><span class="icon">🌙</span><h2>ECLIPSE AI</h2></div>
+            <div class="logo" onclick="location.href='/eclipseAI/dashboard.html'">
+                <span class="icon">🌙</span>
+                <h2>ECLIPSE AI</h2>
+            </div>
             <div class="user-menu">
-                <img id="userAvatar" class="mini-avatar" src="">
-                <span id="userName"></span>
-                <button id="adminBtn" class="icon-btn" style="display:none;">⚙️</button>
-                <button id="logoutBtn" class="icon-btn">🚪</button>
+                <img id="userAvatar" class="mini-avatar" src="" alt="Avatar">
+                <span id="userName" class="username"></span>
+                <button id="adminBtn" class="icon-btn" style="display:none;" title="Админ-панель">⚙️</button>
+                <button id="logoutBtn" class="icon-btn" title="Выйти">🚪</button>
             </div>
         </header>
 
@@ -26,11 +46,21 @@
             <button class="tab-btn" data-tab="profile">👤 Профиль</button>
         </div>
 
+        <!-- Чат -->
         <div id="chat" class="tab-content active">
             <div class="chat-area">
-                <div class="chat-header"><span class="ai-status">🟢 ИИ онлайн</span><button id="clearChatBtn" class="clear-btn">🗑️ Очистить</button></div>
+                <div class="chat-header">
+                    <span class="ai-status">🟢 ИИ онлайн</span>
+                    <button id="clearChatBtn" class="clear-btn">🗑️ Очистить</button>
+                </div>
                 <div id="chatMessages" class="messages-container">
-                    <div class="welcome-message"><div class="ai-icon">🌙</div><div><h3>Eclipse AI</h3><p>Задайте любой вопрос!</p></div></div>
+                    <div class="welcome-message">
+                        <div class="ai-icon">🌙</div>
+                        <div class="welcome-text">
+                            <h3>Добро пожаловать в Eclipse AI!</h3>
+                            <p>Задайте любой вопрос, я помогу!</p>
+                        </div>
+                    </div>
                 </div>
                 <div class="input-container">
                     <input type="text" id="chatInput" placeholder="Напишите сообщение..." class="modern-input">
@@ -39,11 +69,21 @@
             </div>
         </div>
 
+        <!-- RP Помощник -->
         <div id="rp" class="tab-content">
             <div class="chat-area">
-                <div class="chat-header"><span class="ai-status laws-status">📜 Законы BOSTON Majestic RP</span><button id="clearRpBtn" class="clear-btn">🗑️ Очистить</button></div>
+                <div class="chat-header">
+                    <span class="ai-status laws-status">📜 Законы BOSTON Majestic RP</span>
+                    <button id="clearRpBtn" class="clear-btn">🗑️ Очистить</button>
+                </div>
                 <div id="rpMessages" class="messages-container">
-                    <div class="welcome-message"><div class="ai-icon">⚖️</div><div><h3>Помощник по законам</h3><p>Спросите о правилах сервера</p></div></div>
+                    <div class="welcome-message">
+                        <div class="ai-icon">⚖️</div>
+                        <div class="welcome-text">
+                            <h3>Помощник по законам</h3>
+                            <p>Спросите о правилах сервера</p>
+                        </div>
+                    </div>
                 </div>
                 <div class="input-container">
                     <input type="text" id="rpInput" placeholder="Спросить о законах..." class="modern-input">
@@ -52,38 +92,70 @@
             </div>
         </div>
 
+        <!-- Профиль -->
         <div id="profile" class="tab-content">
             <div class="profile-container">
                 <div class="profile-card">
                     <img id="profileAvatar" class="profile-avatar" src="">
                     <h2 id="profileName"></h2>
-                    <p>Discord ID: <span id="profileDiscordId"></span></p>
+                    <p class="discord-id">Discord ID: <span id="profileDiscordId"></span></p>
                     <div class="stats">
-                        <div class="stat"><span class="stat-value" id="chatCount">0</span><span class="stat-label">Запросов</span></div>
-                        <div class="stat"><span class="stat-value" id="rpCount">0</span><span class="stat-label">RP</span></div>
+                        <div class="stat">
+                            <span class="stat-value" id="chatCount">0</span>
+                            <span class="stat-label">💬 Запросов</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value" id="rpCount">0</span>
+                            <span class="stat-label">📜 RP</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- МОДАЛЬНОЕ ОКНО АДМИН-ПАНЕЛИ (ИКОНКА ШЕСТЕРЁНКИ) -->
     <div id="adminModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeAdmin()">&times;</span>
-            <h2>⚙️ Админ-панель</h2>
-            <div id="adminLoginSection"><input type="password" id="adminPassword" placeholder="Пароль"><button id="verifyAdminBtn">Войти</button></div>
+            <div class="modal-header">
+                <h2>⚙️ Админ-панель</h2>
+                <span class="close" onclick="closeAdmin()">&times;</span>
+            </div>
+            <div id="adminLoginSection" class="admin-login-section">
+                <h3>🔐 Вход для администратора</h3>
+                <input type="password" id="adminPassword" placeholder="Введите пароль" class="modern-input">
+                <button id="verifyAdminBtn" class="send-button" style="width:100%; margin-top:10px;">🔑 Войти</button>
+            </div>
             <div id="adminPanel" style="display:none;">
-                <div class="admin-section"><h3>🎨 Тема</h3><select id="themeSelect"><option value="eclipse">🌙 Eclipse</option><option value="minecraft">⛏️ Minecraft</option><option value="gta5">🚗 GTA 5</option><option value="roblox">🧸 Roblox</option></select><button id="applyThemeBtn">Применить</button></div>
-                <div class="admin-section"><h3>📄 Законы</h3><input type="file" id="lawFile" accept=".txt"><button id="uploadLawBtn">Загрузить</button><button id="rebuildLawsBtn">Переобучить</button></div>
-                <div class="admin-section"><h3>👥 Пользователи</h3><div id="usersList"></div></div>
+                <div class="admin-section">
+                    <h3>🎨 Тема оформления</h3>
+                    <div class="theme-buttons">
+                        <button class="theme-option" data-theme="eclipse">🌙 Eclipse</button>
+                        <button class="theme-option" data-theme="minecraft">⛏️ Minecraft</button>
+                        <button class="theme-option" data-theme="gta5">🚗 GTA 5</button>
+                        <button class="theme-option" data-theme="roblox">🧸 Roblox</button>
+                    </div>
+                </div>
+                <div class="admin-section">
+                    <h3>📄 Управление законами</h3>
+                    <input type="file" id="lawFile" accept=".txt" class="modern-input">
+                    <div class="button-group">
+                        <button id="uploadLawBtn" class="send-button">📤 Загрузить закон</button>
+                        <button id="rebuildLawsBtn" class="send-button" style="background:#f39c12;">🔄 Переобучить</button>
+                    </div>
+                </div>
+                <div class="admin-section">
+                    <h3>👥 Список пользователей</h3>
+                    <div id="usersList" class="list-container">Загрузка...</div>
+                </div>
             </div>
         </div>
     </div>
 
     <div id="notificationContainer" class="notification-container"></div>
+
     <script src="js/main.js"></script>
     <script>
-        // ПРОВЕРКА ТОКЕНА - ЕСЛИ НЕТ, КИДАЕМ НА ГЛАВНУЮ
         const token = localStorage.getItem('discord_token');
         const tokenTime = localStorage.getItem('discord_token_time');
         const isValid = token && tokenTime && (Date.now() - parseInt(tokenTime) < 86400000);
