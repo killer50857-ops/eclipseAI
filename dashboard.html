@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eclipse AI - Панель</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body class="theme-eclipse">
+    <div class="app-container">
+        <header class="glass-header">
+            <div class="logo">
+                <span class="icon">🌙</span>
+                <h2>ECLIPSE AI</h2>
+            </div>
+            <div class="user-menu">
+                <img id="userAvatar" class="mini-avatar" src="" alt="">
+                <span id="userName"></span>
+                <button id="adminBtn" class="icon-btn admin-icon" style="display:none;">⚙️</button>
+                <button id="logoutBtn" class="icon-btn">🚪</button>
+            </div>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('chat')">💬 ИИ-Чат</button>
+            <button class="tab-btn" onclick="switchTab('rp')">📜 RP-Помощник</button>
+            <button class="tab-btn" onclick="switchTab('profile')">👤 Профиль</button>
+        </div>
+
+        <div id="chat" class="tab-content active">
+            <div class="chat-area">
+                <div id="chatMessages" class="messages-container">
+                    <div class="welcome-message">
+                        <div class="ai-icon">🌙</div>
+                        <p>Привет! Я Eclipse AI, чем могу помочь?</p>
+                    </div>
+                </div>
+                <div class="input-container">
+                    <input type="text" id="chatInput" placeholder="Напишите сообщение..." class="modern-input">
+                    <button id="sendChatBtn" class="send-button">📤 Отправить</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="rp" class="tab-content">
+            <div class="chat-area">
+                <div id="rpMessages" class="messages-container">
+                    <div class="welcome-message">
+                        <div class="ai-icon">⚖️</div>
+                        <p>Законы BOSTON Majestic RP. Спросите о правилах!</p>
+                    </div>
+                </div>
+                <div class="input-container">
+                    <input type="text" id="rpInput" placeholder="Спросить о законах..." class="modern-input">
+                    <button id="sendRpBtn" class="send-button">📜 Спросить</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="profile" class="tab-content">
+            <div class="profile-container">
+                <div class="profile-card">
+                    <img id="profileAvatar" class="profile-avatar" src="">
+                    <h2 id="profileName"></h2>
+                    <p class="discord-id">Discord ID: <span id="profileDiscordId"></span></p>
+                    <p class="global-name" id="profileGlobalName"></p>
+                    <div class="stats">
+                        <div class="stat">
+                            <span class="stat-value" id="chatCount">0</span>
+                            <span class="stat-label">Запросов чата</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value" id="rpCount">0</span>
+                            <span class="stat-label">RP запросов</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAdmin()">&times;</span>
+            <h2>⚙️ Админ-панель</h2>
+            <div id="adminLoginSection">
+                <input type="password" id="adminPassword" placeholder="Введите пароль" class="modern-input">
+                <button id="verifyAdminBtn" class="send-button">Войти</button>
+            </div>
+            <div id="adminPanel" style="display:none;">
+                <div class="admin-section">
+                    <h3>🎨 Тема фона</h3>
+                    <select id="themeSelect" class="modern-select">
+                        <option value="eclipse">🌙 Eclipse</option>
+                        <option value="minecraft">⛏️ Minecraft</option>
+                        <option value="gta5">🚗 GTA 5</option>
+                        <option value="roblox">🧸 Roblox</option>
+                    </select>
+                    <button id="applyThemeBtn" class="send-button">Применить</button>
+                </div>
+                <div class="admin-section">
+                    <h3>📄 Законы сервера</h3>
+                    <input type="file" id="lawFile" accept=".txt" class="modern-input">
+                    <button id="uploadLawBtn" class="send-button">📤 Загрузить закон</button>
+                    <button id="rebuildLawsBtn" class="send-button" style="background:#f39c12;">🔄 Переобучить</button>
+                </div>
+                <div class="admin-section">
+                    <h3>👥 Пользователи</h3>
+                    <div id="usersList" class="list-container"></div>
+                </div>
+                <div class="admin-section">
+                    <h3>📜 История запросов</h3>
+                    <div id="historyList" class="list-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

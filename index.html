@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eclipse AI - Вход</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body class="theme-eclipse">
+    <div class="login-container">
+        <div class="eclipse-card">
+            <div class="eclipse-glow">🌙</div>
+            <h1 class="glitch-text">ECLIPSE AI</h1>
+            <p class="subtitle">BOSTON Majestic RP</p>
+            <button id="discordLoginBtn" class="discord-btn">
+                🎮 Войти через Discord
+            </button>
+            <div class="info-text">
+                <span>✨ ИИ-Чат</span>
+                <span>📜 RP-Помощник</span>
+                <span>⚡ Мгновенные ответы</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DISCORD_CLIENT_ID = 'YOUR_DISCORD_CLIENT_ID';
+        const REDIRECT_URI = encodeURIComponent(window.location.origin + '/auth');
+        
+        document.getElementById('discordLoginBtn').onclick = () => {
+            window.location.href = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=token&scope=identify`;
+        };
+        
+        const hash = window.location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        const token = params.get('access_token');
+        
+        if (token) {
+            localStorage.setItem('discord_token', token);
+            window.location.href = '/dashboard';
+        }
+        
+        const savedToken = localStorage.getItem('discord_token');
+        if (savedToken && !token) {
+            window.location.href = '/dashboard';
+        }
+    </script>
+</body>
+</html>
