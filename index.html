@@ -14,7 +14,12 @@
             <div class="eclipse-glow">🌙</div>
             <h1 class="glitch-text">ECLIPSE AI</h1>
             <p class="subtitle">BOSTON Majestic RP</p>
-            <button id="discordLoginBtn" class="discord-btn">🎮 Войти через Discord</button>
+            
+            <!-- ПРЯМАЯ ССЫЛКА НА АВТОРИЗАЦИЮ -->
+            <a href="https://discord.com/oauth2/authorize?client_id=1513909031326978261&redirect_uri=https%3A%2F%2Fkiller50857-ops.github.io%2FeclipseAI%2Fauth&response_type=token&scope=identify" class="discord-btn">
+                🎮 Войти через Discord
+            </a>
+            
             <div class="info-text">
                 <span>✨ ИИ-Чат</span>
                 <span>📜 RP-Помощник</span>
@@ -24,21 +29,12 @@
     </div>
 
     <script>
-        // Implicit Flow - токен приходит сразу в URL
-        const CLIENT_ID = '1513909031326978261';
-        const REDIRECT_URI = encodeURIComponent(window.location.origin + '/auth');
-        const AUTH_URL = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=token&scope=identify`;
-        
-        document.getElementById('discordLoginBtn').onclick = () => {
-            window.location.href = AUTH_URL;
-        };
-        
         // Проверка сохраненного токена
         const token = localStorage.getItem('discord_token');
         const tokenTime = localStorage.getItem('discord_token_time');
         const isValid = token && tokenTime && (Date.now() - parseInt(tokenTime) < 86400000);
         
-        if (isValid && window.location.pathname !== '/dashboard') {
+        if (isValid) {
             window.location.href = '/dashboard';
         }
     </script>
