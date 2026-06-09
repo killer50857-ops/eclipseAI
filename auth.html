@@ -2,82 +2,108 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Eclipse AI | BOSTON Majestic RP</title>
-    <meta name="description" content="ИИ-помощник для сервера BOSTON Majestic RP. Чат с ИИ, RP-помощник по законам.">
-    <meta name="theme-color" content="#9b59b6">
-    <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌙</text></svg>">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Авторизация | Eclipse AI</title>
     <style>
-        /* Базовые стили на случай если CSS не загрузился */
-        body {
+        * {
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #0a0a2a 0%, #1a0a3a 100%);
+            box-sizing: border-box;
+        }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a2a 0%, #1a0a3a 50%, #0a0a2a 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
             font-family: 'Courier New', monospace;
         }
-        .fallback {
-            display: none;
+        .auth-container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(0,0,0,0.8);
+            border: 2px solid #9b59b6;
+            border-radius: 0;
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .spinner {
+            width: 60px;
+            height: 60px;
+            margin: 20px auto;
+            border: 4px solid #9b59b6;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .icon {
+            font-size: 48px;
+            animation: pulse 1s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); text-shadow: 0 0 10px #9b59b6; }
+            50% { transform: scale(1.1); text-shadow: 0 0 20px #e74c3c; }
+        }
+        h2 {
+            color: white;
+            margin: 20px 0;
+            font-size: 18px;
+        }
+        p {
+            color: #9b59b6;
+            font-size: 12px;
+        }
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(155,89,182,0.2);
+            color: #2ecc71;
+        }
+        .error {
+            color: #e74c3c;
         }
     </style>
 </head>
-<body class="theme-eclipse">
-    <div class="login-container">
-        <div class="eclipse-card">
-            <div class="eclipse-glow">🌙</div>
-            <h1 class="glitch-text">ECLIPSE AI</h1>
-            <p class="subtitle">BOSTON Majestic RP</p>
-            <button id="discordLoginBtn" class="discord-btn">
-                <span class="btn-icon">🎮</span>
-                Войти через Discord
-            </button>
-            <div class="info-text">
-                <span>✨ ИИ-Чат</span>
-                <span>📜 RP-Помощник</span>
-                <span>⚡ Мгновенные ответы</span>
-                <span>🔒 Безопасно</span>
-            </div>
-            <div class="footer-note">
-                <p>Авторизация нужна для доступа ко всем функциям</p>
-            </div>
-        </div>
+<body>
+    <div class="auth-container">
+        <div class="icon">🌙</div>
+        <div class="spinner"></div>
+        <h2>Авторизация через Discord</h2>
+        <p>Пожалуйста, подождите...</p>
+        <div id="status" class="status">🔄 Обработка входа...</div>
     </div>
 
     <script>
-        // Discord OAuth Configuration
-        const DISCORD_CLIENT_ID = '1513909031326978261';
-        const REDIRECT_URI = encodeURIComponent(window.location.origin + '/auth');
-        
-        // Кнопка входа
-        const loginBtn = document.getElementById('discordLoginBtn');
-        if (loginBtn) {
-            loginBtn.onclick = () => {
-                window.location.href = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=token&scope=identify`;
-            };
-        }
-        
-        // Проверка токена в URL (после редиректа)
         const hash = window.location.hash.substring(1);
         const params = new URLSearchParams(hash);
         const token = params.get('access_token');
+        const error = params.get('error');
+        const statusDiv = document.getElementById('status');
         
-        if (token) {
+        if (error) {
+            statusDiv.innerHTML = '❌ Ошибка авторизации! Перенаправление...';
+            statusDiv.classList.add('error');
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 2000);
+        } else if (token) {
             localStorage.setItem('discord_token', token);
             localStorage.setItem('discord_token_time', Date.now());
-            window.location.href = '/dashboard';
-        }
-        
-        // Проверка сохраненного токена
-        const savedToken = localStorage.getItem('discord_token');
-        const tokenTime = localStorage.getItem('discord_token_time');
-        const isExpired = tokenTime && (Date.now() - parseInt(tokenTime) > 86400000); // 24 часа
-        
-        if (savedToken && !isExpired && !token) {
-            window.location.href = '/dashboard';
-        } else if (isExpired) {
-            localStorage.removeItem('discord_token');
-            localStorage.removeItem('discord_token_time');
+            statusDiv.innerHTML = '✅ Успешный вход! Перенаправление...';
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 1000);
+        } else {
+            statusDiv.innerHTML = '⚠️ Не удалось получить токен. Перенаправление...';
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 2000);
         }
     </script>
 </body>
