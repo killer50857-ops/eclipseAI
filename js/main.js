@@ -1,4 +1,4 @@
-const PROXY_URL = 'https://cm599040.tw1.ru/proxy.php';
+const PROXY_URL = 'https://ci991688.tw1.ru/proxy.php';
 const PROXY_SECRET = 'my_shared_secret_123';
 let currentUser = null;
 
