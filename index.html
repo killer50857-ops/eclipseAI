@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eclipse AI | BOSTON Majestic RP</title>
+    <!-- Иконка сайта (base64 emoji, всегда видна) -->
+    <link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌙%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="./css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
@@ -21,21 +23,18 @@
             </div>
         </div>
     </div>
-
     <script>
-        const CLIENT_ID = '1513909031326978261';
-        const REDIRECT_URI = encodeURIComponent('https://killer50857-ops.github.io/eclipseAI/auth');
+        // ГОТОВАЯ ПРЯМАЯ ССЫЛКА ДЛЯ OAuth2 (code flow)
+        const AUTH_URL = "https://discord.com/oauth2/authorize?client_id=1513909031326978261&response_type=code&redirect_uri=https%3A%2F%2Fkiller50857-ops.github.io%2FeclipseAI%2Fauth&scope=identify";
         
         document.getElementById('discordLoginBtn').onclick = () => {
-            const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=token&scope=identify`;
-            window.location.href = authUrl;
+            window.location.href = AUTH_URL;
         };
         
-        // Проверяем есть ли уже токен
+        // Проверяем, нет ли уже активного токена
         const token = localStorage.getItem('discord_token');
         const tokenTime = localStorage.getItem('discord_token_time');
         const isValid = token && tokenTime && (Date.now() - parseInt(tokenTime) < 86400000);
-        
         if (isValid) {
             window.location.href = '/dashboard';
         }
