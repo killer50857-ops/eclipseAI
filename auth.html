@@ -19,31 +19,18 @@
             text-align: center;
             background: rgba(0,0,0,0.85);
             border: 3px solid #9b59b6;
-            padding: 50px;
-            min-width: 300px;
+            padding: 40px;
+            min-width: 280px;
+            max-width: 90%;
             animation: fadeIn 0.5s;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        .icon { font-size: 64px; animation: pulse 1s ease-in-out infinite; }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); text-shadow: 0 0 10px #9b59b6; }
-            50% { transform: scale(1.1); text-shadow: 0 0 20px #e74c3c; }
-        }
-        .spinner {
-            width: 50px;
-            height: 50px;
-            margin: 20px auto;
-            border: 4px solid #9b59b6;
-            border-top-color: transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .icon { font-size: 60px; animation: pulse 1s ease-in-out infinite; }
+        @keyframes pulse { 0%,100% { transform: scale(1); text-shadow: 0 0 10px #9b59b6; } 50% { transform: scale(1.1); text-shadow: 0 0 20px #e74c3c; } }
+        .spinner { width: 45px; height: 45px; margin: 20px auto; border: 4px solid #9b59b6; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        h3 { color: white; margin: 20px 0; font-size: 14px; }
-        .status { margin-top: 15px; padding: 10px; background: rgba(155,89,182,0.2); font-size: 12px; }
+        h3 { color: white; margin: 15px 0; font-size: 14px; }
+        .status { margin-top: 15px; padding: 10px; background: rgba(155,89,182,0.2); font-size: 12px; word-break: break-word; }
         .status.success { color: #2ecc71; }
         .status.error { color: #e74c3c; }
     </style>
@@ -56,24 +43,42 @@
         <div id="status" class="status">🔄 Обработка входа...</div>
     </div>
     <script>
-        const hash = window.location.hash.substring(1);
-        const params = new URLSearchParams(hash);
-        const token = params.get('access_token');
-        const error = params.get('error');
+        // ПОЛУЧАЕМ КОД ИЗ URL (ПАРАМЕТР ?code=...)
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const error = urlParams.get('error');
         const statusDiv = document.getElementById('status');
         
         if (error) {
             statusDiv.innerHTML = `❌ Ошибка: ${error}<br>Перенаправление...`;
             statusDiv.className = 'status error';
             setTimeout(() => { window.location.href = '/eclipseAI/'; }, 3000);
-        } else if (token) {
-            localStorage.setItem('discord_token', token);
-            localStorage.setItem('discord_token_time', Date.now());
-            statusDiv.innerHTML = '✅ Успешный вход!<br>Перенаправление...';
-            statusDiv.className = 'status success';
-            setTimeout(() => { window.location.href = '/eclipseAI/dashboard.html'; }, 1500);
+        } else if (code) {
+            // ОТПРАВЛЯЕМ КОД НА ПРОКСИ ДЛЯ ОБМЕНА НА ТОКЕН
+            fetch('https://cm599040.tw1.ru/proxy.php/exchange_token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: code, redirect_uri: window.location.origin + '/eclipseAI/auth' })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.access_token) {
+                    localStorage.setItem('discord_token', data.access_token);
+                    localStorage.setItem('discord_token_time', Date.now());
+                    statusDiv.innerHTML = '✅ Успешный вход!<br>Перенаправление...';
+                    statusDiv.className = 'status success';
+                    setTimeout(() => { window.location.href = '/eclipseAI/dashboard.html'; }, 1500);
+                } else {
+                    throw new Error('Не удалось получить токен');
+                }
+            })
+            .catch(() => {
+                statusDiv.innerHTML = '⚠️ Ошибка обмена кода<br>Перенаправление...';
+                statusDiv.className = 'status error';
+                setTimeout(() => { window.location.href = '/eclipseAI/'; }, 2000);
+            });
         } else {
-            statusDiv.innerHTML = '⚠️ Не удалось получить токен<br>Перенаправление...';
+            statusDiv.innerHTML = '⚠️ Неверный запрос (нет кода)<br>Перенаправление...';
             statusDiv.className = 'status error';
             setTimeout(() => { window.location.href = '/eclipseAI/'; }, 2000);
         }
