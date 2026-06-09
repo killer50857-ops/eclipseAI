@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadUser() {
     const token = localStorage.getItem('discord_token');
     if (!token) {
-        window.location.href = 'index.html';
+        window.location.href = '/eclipseAI/';
         return;
     }
     
@@ -49,7 +49,7 @@ async function loadUser() {
     } catch (error) {
         console.error('Auth error:', error);
         localStorage.removeItem('discord_token');
-        window.location.href = 'index.html';
+        window.location.href = '/eclipseAI/';
     }
 }
 
@@ -318,10 +318,10 @@ function clearRp() {
     }
 }
 
-// ==================== ВЫХОД - ИСПРАВЛЕНО! ====================
+// ==================== ВЫХОД - ПОЛНЫЙ ПУТЬ! ====================
 function logout() {
     localStorage.clear();
-    window.location.href = 'index.html';  // БЕЗ СЛЕША!
+    window.location.href = '/eclipseAI/';
 }
 
 function switchTab(tabName) {
