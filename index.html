@@ -7,6 +7,19 @@
     <link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌙%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        .login-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .eclipse-card { background: rgba(0,0,0,0.85); border: 4px solid #9b59b6; padding: 40px; text-align: center; max-width: 450px; width: 100%; animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .eclipse-glow { font-size: 70px; animation: glow 2s ease-in-out infinite; }
+        @keyframes glow { 0%,100% { text-shadow: 0 0 10px #9b59b6; } 50% { text-shadow: 0 0 20px #e74c3c; } }
+        .glitch-text { font-size: 28px; margin: 15px 0; }
+        .subtitle { font-size: 11px; color: #9b59b6; margin-bottom: 25px; }
+        .discord-btn { display: inline-block; background: #5865F2; color: white; text-decoration: none; padding: 14px 25px; font-family: 'Minecraft', monospace; font-size: 14px; width: 100%; text-align: center; border: none; cursor: pointer; transition: all 0.2s; }
+        .discord-btn:hover { transform: translateY(-2px); background: #4752c4; }
+        .info-text { display: flex; justify-content: center; gap: 15px; margin-top: 20px; font-size: 9px; opacity: 0.7; flex-wrap: wrap; }
+        @media (max-width: 500px) { .eclipse-card { padding: 25px; } .glitch-text { font-size: 22px; } }
+    </style>
 </head>
 <body class="theme-eclipse">
     <div class="login-container">
@@ -14,9 +27,7 @@
             <div class="eclipse-glow">🌙</div>
             <h1 class="glitch-text">ECLIPSE AI</h1>
             <p class="subtitle">BOSTON Majestic RP</p>
-            <a href="https://discord.com/oauth2/authorize?client_id=1513909031326978261&redirect_uri=https%3A%2F%2Fkiller50857-ops.github.io%2FeclipseAI%2Fauth.html&response_type=token&scope=identify" class="discord-btn">
-                🎮 Войти через Discord
-            </a>
+            <a id="discordLoginBtn" class="discord-btn">🎮 Войти через Discord</a>
             <div class="info-text">
                 <span>✨ ИИ-Чат</span>
                 <span>📜 RP-Помощник</span>
@@ -25,7 +36,14 @@
         </div>
     </div>
     <script>
-        // ПРОВЕРКА ТОКЕНА - ПОЛНЫЙ ПУТЬ!
+        const CLIENT_ID = '1513909031326978261';
+        const REDIRECT_URI = encodeURIComponent('https://killer50857-ops.github.io/eclipseAI/auth.html');
+        const AUTH_URL = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=token&scope=identify`;
+        
+        document.getElementById('discordLoginBtn').onclick = () => {
+            window.location.href = AUTH_URL;
+        };
+        
         const token = localStorage.getItem('discord_token');
         const tokenTime = localStorage.getItem('discord_token_time');
         const isValid = token && tokenTime && (Date.now() - parseInt(tokenTime) < 86400000);
