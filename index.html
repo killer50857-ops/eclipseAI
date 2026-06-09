@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eclipse AI | BOSTON Majestic RP</title>
     <link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌙%3C/text%3E%3C/svg%3E">
-    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body class="theme-eclipse">
@@ -14,12 +14,9 @@
             <div class="eclipse-glow">🌙</div>
             <h1 class="glitch-text">ECLIPSE AI</h1>
             <p class="subtitle">BOSTON Majestic RP</p>
-            
-            <!-- ПРЯМАЯ ССЫЛКА НА АВТОРИЗАЦИЮ -->
-            <a href="https://discord.com/oauth2/authorize?client_id=1513909031326978261&redirect_uri=https%3A%2F%2Fkiller50857-ops.github.io%2FeclipseAI%2Fauth&response_type=token&scope=identify" class="discord-btn">
+            <a href="https://discord.com/oauth2/authorize?client_id=1513909031326978261&redirect_uri=https%3A%2F%2Fkiller50857-ops.github.io%2FeclipseAI%2Fauth.html&response_type=token&scope=identify" class="discord-btn">
                 🎮 Войти через Discord
             </a>
-            
             <div class="info-text">
                 <span>✨ ИИ-Чат</span>
                 <span>📜 RP-Помощник</span>
@@ -27,15 +24,12 @@
             </div>
         </div>
     </div>
-
     <script>
-        // Проверка сохраненного токена
         const token = localStorage.getItem('discord_token');
         const tokenTime = localStorage.getItem('discord_token_time');
         const isValid = token && tokenTime && (Date.now() - parseInt(tokenTime) < 86400000);
-        
         if (isValid) {
-            window.location.href = '/dashboard';
+            window.location.href = 'dashboard.html';
         }
     </script>
 </body>
