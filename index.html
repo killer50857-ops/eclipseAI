@@ -23,25 +23,20 @@
     </div>
 
     <script>
-        const DISCORD_CLIENT_ID = '1513909031326978261';
-        const REDIRECT_URI = encodeURIComponent(window.location.origin + '/auth');
+        const CLIENT_ID = '1513909031326978261';
+        const REDIRECT_URI = encodeURIComponent('https://killer50857-ops.github.io/eclipseAI/auth');
         
         document.getElementById('discordLoginBtn').onclick = () => {
-            window.location.href = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=token&scope=identify`;
+            const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=token&scope=identify`;
+            window.location.href = authUrl;
         };
         
-        const hash = window.location.hash.substring(1);
-        const params = new URLSearchParams(hash);
-        const token = params.get('access_token');
+        // Проверяем есть ли уже токен
+        const token = localStorage.getItem('discord_token');
+        const tokenTime = localStorage.getItem('discord_token_time');
+        const isValid = token && tokenTime && (Date.now() - parseInt(tokenTime) < 86400000);
         
-        if (token) {
-            localStorage.setItem('discord_token', token);
-            localStorage.setItem('discord_token_time', Date.now());
-            window.location.href = '/dashboard';
-        }
-        
-        const savedToken = localStorage.getItem('discord_token');
-        if (savedToken && !token) {
+        if (isValid) {
             window.location.href = '/dashboard';
         }
     </script>
