@@ -2,10 +2,25 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eclipse AI - Вход</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Eclipse AI | BOSTON Majestic RP</title>
+    <meta name="description" content="ИИ-помощник для сервера BOSTON Majestic RP. Чат с ИИ, RP-помощник по законам.">
+    <meta name="theme-color" content="#9b59b6">
+    <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌙</text></svg>">
+    <style>
+        /* Базовые стили на случай если CSS не загрузился */
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #0a0a2a 0%, #1a0a3a 100%);
+            font-family: 'Courier New', monospace;
+        }
+        .fallback {
+            display: none;
+        }
+    </style>
 </head>
 <body class="theme-eclipse">
     <div class="login-container">
@@ -14,36 +29,55 @@
             <h1 class="glitch-text">ECLIPSE AI</h1>
             <p class="subtitle">BOSTON Majestic RP</p>
             <button id="discordLoginBtn" class="discord-btn">
-                🎮 Войти через Discord
+                <span class="btn-icon">🎮</span>
+                Войти через Discord
             </button>
             <div class="info-text">
                 <span>✨ ИИ-Чат</span>
                 <span>📜 RP-Помощник</span>
                 <span>⚡ Мгновенные ответы</span>
+                <span>🔒 Безопасно</span>
+            </div>
+            <div class="footer-note">
+                <p>Авторизация нужна для доступа ко всем функциям</p>
             </div>
         </div>
     </div>
 
     <script>
-        const DISCORD_CLIENT_ID = 'YOUR_DISCORD_CLIENT_ID';
+        // Discord OAuth Configuration
+        const DISCORD_CLIENT_ID = '1513909031326978261';
         const REDIRECT_URI = encodeURIComponent(window.location.origin + '/auth');
         
-        document.getElementById('discordLoginBtn').onclick = () => {
-            window.location.href = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=token&scope=identify`;
-        };
+        // Кнопка входа
+        const loginBtn = document.getElementById('discordLoginBtn');
+        if (loginBtn) {
+            loginBtn.onclick = () => {
+                window.location.href = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=token&scope=identify`;
+            };
+        }
         
+        // Проверка токена в URL (после редиректа)
         const hash = window.location.hash.substring(1);
         const params = new URLSearchParams(hash);
         const token = params.get('access_token');
         
         if (token) {
             localStorage.setItem('discord_token', token);
+            localStorage.setItem('discord_token_time', Date.now());
             window.location.href = '/dashboard';
         }
         
+        // Проверка сохраненного токена
         const savedToken = localStorage.getItem('discord_token');
-        if (savedToken && !token) {
+        const tokenTime = localStorage.getItem('discord_token_time');
+        const isExpired = tokenTime && (Date.now() - parseInt(tokenTime) > 86400000); // 24 часа
+        
+        if (savedToken && !isExpired && !token) {
             window.location.href = '/dashboard';
+        } else if (isExpired) {
+            localStorage.removeItem('discord_token');
+            localStorage.removeItem('discord_token_time');
         }
     </script>
 </body>
