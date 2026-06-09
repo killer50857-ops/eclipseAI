@@ -65,17 +65,17 @@
         if (error) {
             statusDiv.innerHTML = `❌ Ошибка: ${error}<br>Перенаправление...`;
             statusDiv.className = 'status error';
-            setTimeout(() => { window.location.href = 'index.html'; }, 3000);
+            setTimeout(() => { window.location.href = '/eclipseAI/'; }, 3000);
         } else if (token) {
             localStorage.setItem('discord_token', token);
             localStorage.setItem('discord_token_time', Date.now());
             statusDiv.innerHTML = '✅ Успешный вход!<br>Перенаправление...';
             statusDiv.className = 'status success';
-            setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
+            setTimeout(() => { window.location.href = '/eclipseAI/dashboard.html'; }, 1500);
         } else {
             statusDiv.innerHTML = '⚠️ Не удалось получить токен<br>Перенаправление...';
             statusDiv.className = 'status error';
-            setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+            setTimeout(() => { window.location.href = '/eclipseAI/'; }, 2000);
         }
     </script>
 </body>
