@@ -4,43 +4,121 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eclipse AI | Админ-панель</title>
+    <link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌙%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="./css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body class="theme-eclipse">
     <div class="admin-container">
         <h1>🌙 Eclipse AI - Админ-панель</h1>
-        <div class="admin-login" id="adminLoginForm">
-            <input type="password" id="adminPassword" placeholder="Пароль">
-            <button id="loginAdminBtn">Войти</button>
+        
+        <div id="adminLogin" class="admin-login-box">
+            <input type="password" id="adminPass" placeholder="Пароль">
+            <button onclick="loginAdmin()">Войти</button>
         </div>
-        <div id="adminPanel" style="display:none;">
-            <div class="admin-section">
-                <h3>Тема</h3>
+        
+        <div id="adminContent" style="display:none;">
+            <div class="admin-card">
+                <h3>🎨 Тема фона</h3>
                 <select id="themeSelect">
-                    <option value="eclipse">Eclipse</option>
-                    <option value="minecraft">Minecraft</option>
-                    <option value="gta5">GTA 5</option>
-                    <option value="roblox">Roblox</option>
+                    <option value="eclipse">🌙 Eclipse</option>
+                    <option value="minecraft">⛏️ Minecraft</option>
+                    <option value="gta5">🚗 GTA 5</option>
+                    <option value="roblox">🧸 Roblox</option>
                 </select>
-                <button id="applyThemeBtn">Применить</button>
+                <button onclick="applyTheme()">Применить</button>
             </div>
-            <div class="admin-section">
-                <h3>Законы</h3>
+            
+            <div class="admin-card">
+                <h3>📄 Законы сервера</h3>
                 <input type="file" id="lawFile" accept=".txt">
-                <button id="uploadLawBtn">Загрузить</button>
-                <button id="rebuildLawsBtn">Переобучить</button>
+                <button onclick="uploadLaw()">📤 Загрузить закон</button>
+                <button onclick="rebuildLaws()">🔄 Переобучить RP-помощника</button>
             </div>
-            <div class="admin-section">
-                <h3>Пользователи</h3>
+            
+            <div class="admin-card">
+                <h3>👥 Пользователи</h3>
                 <div id="usersList"></div>
             </div>
-            <div class="admin-section">
-                <h3>История</h3>
+            
+            <div class="admin-card">
+                <h3>📜 История запросов</h3>
                 <div id="historyList"></div>
             </div>
         </div>
     </div>
-    <script src="./js/main.js"></script>
+    
+    <script>
+        const PROXY_URL = 'https://cm599040.tw1.ru/proxy.php';
+        const PROXY_SECRET = 'my_shared_secret_123';
+        
+        function loginAdmin() {
+            const pass = document.getElementById('adminPass').value;
+            if (pass === 'style42') {
+                localStorage.setItem('isAdmin', 'true');
+                document.getElementById('adminLogin').style.display = 'none';
+                document.getElementById('adminContent').style.display = 'block';
+                loadUsers();
+                loadHistory();
+            } else {
+                alert('Неверный пароль!');
+            }
+        }
+        
+        async function loadUsers() {
+            const res = await fetch(`${PROXY_URL}/admin/users`, {
+                headers: { 'Authorization': `Bearer ${PROXY_SECRET}` }
+            });
+            const users = await res.json();
+            document.getElementById('usersList').innerHTML = users.map(u => 
+                `<div><strong>${u.username}</strong> | ${u.discord_id} | ${new Date(u.registered_at).toLocaleDateString()}</div>`
+            ).join('');
+        }
+        
+        async function loadHistory() {
+            const res = await fetch(`${PROXY_URL}/admin/history`, {
+                headers: { 'Authorization': `Bearer ${PROXY_SECRET}` }
+            });
+            const history = await res.json();
+            document.getElementById('historyList').innerHTML = history.map(h => 
+                `<div><strong>${h.username}</strong> [${h.type}]: ${h.prompt || h.question} → ${h.content.substring(0, 100)}...</div>`
+            ).join('');
+        }
+        
+        async function uploadLaw() {
+            const file = document.getElementById('lawFile').files[0];
+            if (!file) return alert('Выберите файл!');
+            const formData = new FormData();
+            formData.append('lawfile', file);
+            await fetch(`${PROXY_URL}/admin/upload_law`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${PROXY_SECRET}` },
+                body: formData
+            });
+            alert('Закон загружен!');
+        }
+        
+        async function rebuildLaws() {
+            await fetch(`${PROXY_URL}/admin/rebuild_laws`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${PROXY_SECRET}` }
+            });
+            alert('RP-помощник переобучен!');
+        }
+        
+        async function applyTheme() {
+            const theme = document.getElementById('themeSelect').value;
+            localStorage.setItem('siteTheme', theme);
+            document.body.className = `theme-${theme}`;
+        }
+        
+        // Проверка при загрузке
+        if (localStorage.getItem('isAdmin') === 'true') {
+            document.getElementById('adminLogin').style.display = 'none';
+            document.getElementById('adminContent').style.display = 'block';
+            loadUsers();
+            loadHistory();
+        }
+    </script>
 </body>
 </html>
