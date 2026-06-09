@@ -2,121 +2,187 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eclipse AI - Панель</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Eclipse AI | Панель управления</title>
+    <meta name="theme-color" content="#9b59b6">
+    <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌙</text></svg>">
 </head>
 <body class="theme-eclipse">
     <div class="app-container">
+        <!-- Шапка -->
         <header class="glass-header">
-            <div class="logo">
+            <div class="logo" onclick="window.location.href='/dashboard'">
                 <span class="icon">🌙</span>
                 <h2>ECLIPSE AI</h2>
+                <span class="version">v2.0</span>
             </div>
             <div class="user-menu">
-                <img id="userAvatar" class="mini-avatar" src="" alt="">
-                <span id="userName"></span>
-                <button id="adminBtn" class="icon-btn admin-icon" style="display:none;">⚙️</button>
-                <button id="logoutBtn" class="icon-btn">🚪</button>
+                <div class="user-info-display">
+                    <img id="userAvatar" class="mini-avatar" src="" alt="Avatar">
+                    <span id="userName" class="username"></span>
+                </div>
+                <button id="adminBtn" class="icon-btn admin-icon" style="display:none;" title="Админ-панель">⚙️</button>
+                <button id="logoutBtn" class="icon-btn logout-icon" title="Выйти">🚪</button>
             </div>
         </header>
 
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('chat')">💬 ИИ-Чат</button>
-            <button class="tab-btn" onclick="switchTab('rp')">📜 RP-Помощник</button>
-            <button class="tab-btn" onclick="switchTab('profile')">👤 Профиль</button>
+        <!-- Вкладки -->
+        <div class="tabs-container">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="chat">
+                    <span class="tab-icon">💬</span>
+                    <span class="tab-text">ИИ-Чат</span>
+                </button>
+                <button class="tab-btn" data-tab="rp">
+                    <span class="tab-icon">📜</span>
+                    <span class="tab-text">RP-Помощник</span>
+                </button>
+                <button class="tab-btn" data-tab="profile">
+                    <span class="tab-icon">👤</span>
+                    <span class="tab-text">Профиль</span>
+                </button>
+            </div>
         </div>
 
+        <!-- Вкладка: ИИ-Чат -->
         <div id="chat" class="tab-content active">
             <div class="chat-area">
+                <div class="chat-header">
+                    <span class="ai-status">🟢 ИИ онлайн</span>
+                    <button id="clearChatBtn" class="clear-btn" title="Очистить чат">🗑️ Очистить</button>
+                </div>
                 <div id="chatMessages" class="messages-container">
                     <div class="welcome-message">
                         <div class="ai-icon">🌙</div>
-                        <p>Привет! Я Eclipse AI, чем могу помочь?</p>
+                        <div class="welcome-text">
+                            <h3>Добро пожаловать в Eclipse AI!</h3>
+                            <p>Я ваш персональный помощник. Можете задать любой вопрос о сервере, игровой механике или просто поболтать.</p>
+                            <small>⚡ Быстрые ответы | 🎮 Игровой опыт | 🤖 Нейросеть GPT-4</small>
+                        </div>
                     </div>
                 </div>
                 <div class="input-container">
-                    <input type="text" id="chatInput" placeholder="Напишите сообщение..." class="modern-input">
-                    <button id="sendChatBtn" class="send-button">📤 Отправить</button>
+                    <div class="input-actions">
+                        <button class="action-btn" id="clearChatInputBtn" title="Очистить поле">✖️</button>
+                    </div>
+                    <input type="text" id="chatInput" placeholder="Напишите сообщение..." class="modern-input" autocomplete="off">
+                    <button id="sendChatBtn" class="send-button">
+                        <span>📤</span>
+                        <span>Отправить</span>
+                    </button>
+                </div>
+                <div class="chat-tips">
+                    <span>💡 Совет: Задавайте конкретные вопросы для лучших ответов</span>
                 </div>
             </div>
         </div>
 
+        <!-- Вкладка: RP-Помощник -->
         <div id="rp" class="tab-content">
             <div class="chat-area">
+                <div class="chat-header">
+                    <span class="ai-status laws-status">📜 Законы BOSTON Majestic RP</span>
+                    <button id="clearRpBtn" class="clear-btn" title="Очистить историю">🗑️ Очистить</button>
+                </div>
                 <div id="rpMessages" class="messages-container">
                     <div class="welcome-message">
                         <div class="ai-icon">⚖️</div>
-                        <p>Законы BOSTON Majestic RP. Спросите о правилах!</p>
+                        <div class="welcome-text">
+                            <h3>Помощник по законам сервера</h3>
+                            <p>Задайте вопрос о правилах, законах или наказаниях на сервере BOSTON Majestic RP.</p>
+                            <small>📖 База законов обновляется администрацией | ⚖️ Ответы только на основе правил</small>
+                        </div>
                     </div>
                 </div>
                 <div class="input-container">
-                    <input type="text" id="rpInput" placeholder="Спросить о законах..." class="modern-input">
-                    <button id="sendRpBtn" class="send-button">📜 Спросить</button>
+                    <input type="text" id="rpInput" placeholder="Спросить о законах..." class="modern-input" autocomplete="off">
+                    <button id="sendRpBtn" class="send-button">
+                        <span>📜</span>
+                        <span>Спросить</span>
+                    </button>
+                </div>
+                <div class="chat-tips">
+                    <span>💡 Пример: "Какое наказание за двойную регистрацию?"</span>
                 </div>
             </div>
         </div>
 
+        <!-- Вкладка: Профиль -->
         <div id="profile" class="tab-content">
             <div class="profile-container">
                 <div class="profile-card">
-                    <img id="profileAvatar" class="profile-avatar" src="">
-                    <h2 id="profileName"></h2>
-                    <p class="discord-id">Discord ID: <span id="profileDiscordId"></span></p>
-                    <p class="global-name" id="profileGlobalName"></p>
+                    <div class="profile-avatar-container">
+                        <img id="profileAvatar" class="profile-avatar" src="">
+                        <div class="avatar-status online"></div>
+                    </div>
+                    <h2 id="profileName">Загрузка...</h2>
+                    <p class="discord-id">Discord ID: <span id="profileDiscordId">---</span></p>
+                    <p class="global-name">🌐 <span id="profileGlobalName">---</span></p>
                     <div class="stats">
                         <div class="stat">
                             <span class="stat-value" id="chatCount">0</span>
-                            <span class="stat-label">Запросов чата</span>
+                            <span class="stat-label">💬 Запросов в чат</span>
                         </div>
                         <div class="stat">
                             <span class="stat-value" id="rpCount">0</span>
-                            <span class="stat-label">RP запросов</span>
+                            <span class="stat-label">📜 RP запросов</span>
                         </div>
+                    </div>
+                    <div class="profile-actions">
+                        <button id="refreshStatsBtn" class="profile-btn">🔄 Обновить статистику</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Модальное окно админ-панели -->
     <div id="adminModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeAdmin()">&times;</span>
-            <h2>⚙️ Админ-панель</h2>
-            <div id="adminLoginSection">
-                <input type="password" id="adminPassword" placeholder="Введите пароль" class="modern-input">
-                <button id="verifyAdminBtn" class="send-button">Войти</button>
+            <div class="modal-header">
+                <h2>⚙️ Админ-панель</h2>
+                <span class="close" onclick="closeAdmin()">&times;</span>
+            </div>
+            <div id="adminLoginSection" class="admin-login-section">
+                <h3>Введите пароль администратора</h3>
+                <input type="password" id="adminPassword" placeholder="Пароль" class="modern-input">
+                <button id="verifyAdminBtn" class="send-button" style="width:100%;">🔑 Войти</button>
             </div>
             <div id="adminPanel" style="display:none;">
                 <div class="admin-section">
-                    <h3>🎨 Тема фона</h3>
-                    <select id="themeSelect" class="modern-select">
-                        <option value="eclipse">🌙 Eclipse</option>
-                        <option value="minecraft">⛏️ Minecraft</option>
-                        <option value="gta5">🚗 GTA 5</option>
-                        <option value="roblox">🧸 Roblox</option>
-                    </select>
-                    <button id="applyThemeBtn" class="send-button">Применить</button>
+                    <h3>🎨 Тема оформления</h3>
+                    <div class="theme-buttons">
+                        <button class="theme-option" data-theme="eclipse">🌙 Eclipse</button>
+                        <button class="theme-option" data-theme="minecraft">⛏️ Minecraft</button>
+                        <button class="theme-option" data-theme="gta5">🚗 GTA 5</button>
+                        <button class="theme-option" data-theme="roblox">🧸 Roblox</button>
+                    </div>
                 </div>
                 <div class="admin-section">
-                    <h3>📄 Законы сервера</h3>
+                    <h3>📄 Управление законами</h3>
                     <input type="file" id="lawFile" accept=".txt" class="modern-input">
-                    <button id="uploadLawBtn" class="send-button">📤 Загрузить закон</button>
-                    <button id="rebuildLawsBtn" class="send-button" style="background:#f39c12;">🔄 Переобучить</button>
+                    <div class="button-group">
+                        <button id="uploadLawBtn" class="send-button">📤 Загрузить закон</button>
+                        <button id="rebuildLawsBtn" class="send-button warning">🔄 Переобучить помощника</button>
+                    </div>
                 </div>
                 <div class="admin-section">
-                    <h3>👥 Пользователи</h3>
-                    <div id="usersList" class="list-container"></div>
+                    <h3>👥 Список пользователей</h3>
+                    <div id="usersList" class="list-container">Загрузка...</div>
                 </div>
                 <div class="admin-section">
                     <h3>📜 История запросов</h3>
-                    <div id="historyList" class="list-container"></div>
+                    <div id="historyList" class="list-container">Загрузка...</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="/js/main.js"></script>
+    <!-- Уведомления -->
+    <div id="notificationContainer" class="notification-container"></div>
+
+    <script src="js/main.js"></script>
 </body>
 </html>
