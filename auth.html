@@ -43,14 +43,9 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         h3 { color: white; margin: 20px 0; font-size: 14px; }
-        .status {
-            margin-top: 15px;
-            padding: 10px;
-            background: rgba(155,89,182,0.2);
-            color: #2ecc71;
-            font-size: 12px;
-        }
-        .error { color: #e74c3c; }
+        .status { margin-top: 15px; padding: 10px; background: rgba(155,89,182,0.2); font-size: 12px; }
+        .status.success { color: #2ecc71; }
+        .status.error { color: #e74c3c; }
     </style>
 </head>
 <body>
@@ -60,9 +55,7 @@
         <h3>Авторизация через Discord</h3>
         <div id="status" class="status">🔄 Обработка входа...</div>
     </div>
-
     <script>
-        // Получаем токен из URL (implicit flow)
         const hash = window.location.hash.substring(1);
         const params = new URLSearchParams(hash);
         const token = params.get('access_token');
@@ -71,25 +64,18 @@
         
         if (error) {
             statusDiv.innerHTML = `❌ Ошибка: ${error}<br>Перенаправление...`;
-            statusDiv.classList.add('error');
-            setTimeout(() => {
-                window.location.href = '/';
-            }, 3000);
+            statusDiv.className = 'status error';
+            setTimeout(() => { window.location.href = 'index.html'; }, 3000);
         } else if (token) {
-            // Сохраняем токен
             localStorage.setItem('discord_token', token);
             localStorage.setItem('discord_token_time', Date.now());
             statusDiv.innerHTML = '✅ Успешный вход!<br>Перенаправление...';
-            statusDiv.style.color = '#2ecc71';
-            setTimeout(() => {
-                window.location.href = '/dashboard';
-            }, 1500);
+            statusDiv.className = 'status success';
+            setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
         } else {
             statusDiv.innerHTML = '⚠️ Не удалось получить токен<br>Перенаправление...';
-            statusDiv.classList.add('error');
-            setTimeout(() => {
-                window.location.href = '/';
-            }, 2000);
+            statusDiv.className = 'status error';
+            setTimeout(() => { window.location.href = 'index.html'; }, 2000);
         }
     </script>
 </body>
