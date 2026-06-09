@@ -111,7 +111,7 @@ async function sendChat() {
     } catch (error) {
         removeTypingIndicator('chatMessages');
         console.error('Chat error:', error);
-        addMessage('system-message', '⚠️ Ошибка соединения с прокси-сервером. Проверьте connection.', 'chatMessages');
+        addMessage('system-message', '⚠️ Ошибка соединения с прокси-сервером.', 'chatMessages');
     }
 }
 
@@ -318,9 +318,10 @@ function clearRp() {
     }
 }
 
+// ==================== ВЫХОД - ИСПРАВЛЕНО! ====================
 function logout() {
     localStorage.clear();
-    window.location.href = 'index.html';
+    window.location.href = 'index.html';  // БЕЗ СЛЕША!
 }
 
 function switchTab(tabName) {
