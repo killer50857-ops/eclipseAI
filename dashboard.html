@@ -83,10 +83,15 @@
     <div id="notificationContainer" class="notification-container"></div>
     <script src="js/main.js"></script>
     <script>
+        // ПРОВЕРКА ТОКЕНА - ЕСЛИ НЕТ, КИДАЕМ НА ГЛАВНУЮ
         const token = localStorage.getItem('discord_token');
         const tokenTime = localStorage.getItem('discord_token_time');
         const isValid = token && tokenTime && (Date.now() - parseInt(tokenTime) < 86400000);
-        if (!isValid) { window.location.href = 'index.html'; }
+        if (!isValid) { 
+            localStorage.removeItem('discord_token');
+            localStorage.removeItem('discord_token_time');
+            window.location.href = '/eclipseAI/'; 
+        }
     </script>
 </body>
 </html>
