@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Авторизация...</title>
+    <title>Авторизация Eclipse AI</title>
     <style>
         body {
             margin: 0;
@@ -15,9 +15,12 @@
             align-items: center;
             font-family: 'Courier New', monospace;
         }
-        .loader {
+        .auth-box {
             text-align: center;
-            color: white;
+            background: rgba(0,0,0,0.8);
+            border: 3px solid #9b59b6;
+            padding: 40px;
+            border-radius: 0;
         }
         .spinner {
             width: 50px;
@@ -31,23 +34,51 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        .success { color: #2ecc71; }
+        .error { color: #e74c3c; }
     </style>
 </head>
 <body>
-    <div class="loader">
+    <div class="auth-box">
         <div class="spinner"></div>
-        <p>Авторизация через Discord...</p>
+        <h3 id="status">🔄 Обработка входа...</h3>
     </div>
+
     <script>
-        const hash = window.location.hash.substring(1);
-        const params = new URLSearchParams(hash);
-        const token = params.get('access_token');
+        // Получаем токен из URL
+        function getTokenFromUrl() {
+            const hash = window.location.hash.substring(1);
+            const params = new URLSearchParams(hash);
+            return params.get('access_token');
+        }
         
-        if (token) {
+        // Получаем ошибку из URL
+        function getErrorFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('error');
+        }
+        
+        const token = getTokenFromUrl();
+        const error = getErrorFromUrl();
+        const statusEl = document.getElementById('status');
+        
+        if (error) {
+            statusEl.innerHTML = `❌ Ошибка: ${error}<br>Перенаправление...`;
+            statusEl.className = 'error';
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 3000);
+        } else if (token) {
+            // Сохраняем токен
             localStorage.setItem('discord_token', token);
             localStorage.setItem('discord_token_time', Date.now());
-            window.location.href = '/dashboard';
+            statusEl.innerHTML = '✅ Успешный вход!<br>Перенаправление...';
+            statusEl.className = 'success';
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 1500);
         } else {
+            statusEl.innerHTML = '⚠️ Не удалось получить токен<br>Перенаправление...';
             setTimeout(() => {
                 window.location.href = '/';
             }, 2000);
