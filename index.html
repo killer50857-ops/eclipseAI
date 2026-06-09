@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
+        /* стили как у вас уже есть, они остаются */
         .login-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
         .eclipse-card { background: rgba(0,0,0,0.85); border: 4px solid #9b59b6; padding: 40px; text-align: center; max-width: 450px; width: 100%; animation: float 3s ease-in-out infinite; }
         @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
@@ -27,7 +28,10 @@
             <div class="eclipse-glow">🌙</div>
             <h1 class="glitch-text">ECLIPSE AI</h1>
             <p class="subtitle">BOSTON Majestic RP</p>
-            <a id="discordLoginBtn" class="discord-btn">🎮 Войти через Discord</a>
+            <!-- ИСПОЛЬЗУЕМ ВАШУ ПРЯМУЮ ССЫЛКУ -->
+            <a href="https://discord.com/oauth2/authorize?client_id=1513909031326978261&response_type=code&redirect_uri=https%3A%2F%2Fkiller50857-ops.github.io%2FeclipseAI%2Fauth&scope=identify+gdm.join+guilds.join+rpc" class="discord-btn">
+                🎮 Войти через Discord
+            </a>
             <div class="info-text">
                 <span>✨ ИИ-Чат</span>
                 <span>📜 RP-Помощник</span>
@@ -36,14 +40,7 @@
         </div>
     </div>
     <script>
-        const CLIENT_ID = '1513909031326978261';
-        const REDIRECT_URI = encodeURIComponent('https://killer50857-ops.github.io/eclipseAI/auth.html');
-        const AUTH_URL = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=token&scope=identify`;
-        
-        document.getElementById('discordLoginBtn').onclick = () => {
-            window.location.href = AUTH_URL;
-        };
-        
+        // ПРОВЕРКА ТОКЕНА (ОН БУДЕТ В LOCALSTORAGE ПОСЛЕ ОБМЕНА)
         const token = localStorage.getItem('discord_token');
         const tokenTime = localStorage.getItem('discord_token_time');
         const isValid = token && tokenTime && (Date.now() - parseInt(tokenTime) < 86400000);
